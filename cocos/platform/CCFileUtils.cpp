@@ -785,6 +785,7 @@ std::string FileUtils::getNewFilename(const std::string &filename) const
 
 std::string FileUtils::getPathForFilename(const std::string& filename, const std::string& resolutionDirectory, const std::string& searchPath) const
 {
+#ifdef COCOS2DX_ORIGINAL_CODE
     std::string file = filename;
     std::string file_path = "";
     size_t pos = filename.find_last_of("/");
@@ -802,6 +803,68 @@ std::string FileUtils::getPathForFilename(const std::string& filename, const std
     path = getFullPathForDirectoryAndFilename(path, file);
 
     return path;
+#else
+    std::string file = filename;
+    std::string file_path = "";
+    size_t pos = filename.find_last_of("/");
+    if (pos != std::string::npos)
+    {
+        file_path = filename.substr(0, pos+1);
+        file = filename.substr(pos+1);
+    }
+
+    std::string postfix = searchPath;
+    std::string postfix1 = searchPath;
+    std::string prefix = "";
+    if(!searchPath.empty()) {
+        std::string postFixWithoutSlash = postfix.substr(0, postfix.length() - 1);
+        size_t posOfLastSlash = postFixWithoutSlash.find_last_of("/");
+        if (posOfLastSlash != std::string::npos)
+        {
+            postfix = postFixWithoutSlash.substr(posOfLastSlash + 1) + "/";
+            prefix = postFixWithoutSlash.substr(0, posOfLastSlash) + "/";
+        }
+        std::string postfixTemp = "-" + postfix.substr(0, postfix.length() - 1);
+        postfix1 = "~" + postfix.substr(0, postfix.length() - 1);
+        postfix = postfixTemp;
+
+        if(
+                postfix.find("iphone") == std::string::npos
+                        && postfix.find("ipad") == std::string::npos
+                        && postfix.find("hd") == std::string::npos
+                ) {
+            postfix = "";
+            postfix1 = "";
+        }
+    }
+
+    std::string path = prefix + file_path;
+    path += resolutionDirectory;
+
+    pos = file.find_last_of(".");
+
+    std::string finalFileName = file;
+    std::string finalFileNameOnly = file;
+    std::string extensionOnly = "";
+    if (pos != std::string::npos)
+    {
+        finalFileNameOnly = file.substr(0, pos);
+        extensionOnly = file.substr(pos);
+    }
+
+    finalFileName = finalFileNameOnly + postfix + extensionOnly;
+
+    std::string lookupPath = path;
+    path = getFullPathForDirectoryAndFilename(lookupPath, finalFileName);
+
+    if(path.empty()) {
+        finalFileName = finalFileNameOnly + postfix1 + extensionOnly;
+
+        path = getFullPathForDirectoryAndFilename(lookupPath, finalFileName);
+    }
+
+    return path;
+#endif
 }
 
 std::string FileUtils::fullPathForFilename(const std::string &filename) const
