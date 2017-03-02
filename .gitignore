@@ -41,6 +41,7 @@ AppPackages
 BundleArtifacts
 .vs/
 *.VC.db
+build/libcocos2diOS.a
 
 # Ignore files build by ndk and eclipse
 libs/
