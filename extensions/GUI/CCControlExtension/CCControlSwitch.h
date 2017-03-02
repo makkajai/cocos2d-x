@@ -79,6 +79,7 @@ public:
      */
     void setOn(bool isOn, bool animated);
     void setOn(bool isOn);
+    void setOnWithoutAction(bool isOn);
     bool isOn(void) const { return _on; }
     bool hasMoved() const { return _moved; }
     virtual void setEnabled(bool enabled) override;
