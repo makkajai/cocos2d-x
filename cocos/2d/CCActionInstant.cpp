@@ -2,7 +2,7 @@
  Copyright (c) 2008-2010 Ricardo Quesada
  Copyright (c) 2010-2012 cocos2d-x.org
  Copyright (c) 2011      Zynga Inc.
- Copyright (c) 2013-2016 Chukong Technologies Inc.
+ Copyright (c) 2013-2017 Chukong Technologies Inc.
  
  http://www.cocos2d-x.org
 
@@ -40,9 +40,15 @@ NS_CC_BEGIN
 //
 // InstantAction
 //
+void ActionInstant::startWithTarget(Node *target)
+{
+    FiniteTimeAction::startWithTarget(target);
+    _done = false;
+}
+
 bool ActionInstant::isDone() const
 {
-    return true;
+    return _done;
 }
 
 void ActionInstant::step(float /*dt*/)
@@ -56,6 +62,7 @@ void ActionInstant::step(float /*dt*/)
     }
 #endif
     update(updateDt);
+    _done = true;
 }
 
 void ActionInstant::update(float /*time*/)

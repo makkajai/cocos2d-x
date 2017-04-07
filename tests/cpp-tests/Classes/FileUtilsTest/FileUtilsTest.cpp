@@ -35,7 +35,7 @@ void TestResolutionDirectories::onEnter()
     std::string ret;
 
     sharedFileUtils->purgeCachedEntries();
-    _defaultSearchPathArray = sharedFileUtils->getSearchPaths();
+    _defaultSearchPathArray = sharedFileUtils->getOriginalSearchPaths();
     std::vector<std::string> searchPaths = _defaultSearchPathArray;
     searchPaths.insert(searchPaths.begin(),   "Misc");
     sharedFileUtils->setSearchPaths(searchPaths);
@@ -89,7 +89,7 @@ void TestSearchPath::onEnter()
     std::string ret;
 
     sharedFileUtils->purgeCachedEntries();
-    _defaultSearchPathArray = sharedFileUtils->getSearchPaths();
+    _defaultSearchPathArray = sharedFileUtils->getOriginalSearchPaths();
     std::vector<std::string> searchPaths = _defaultSearchPathArray;
     std::string writablePath = sharedFileUtils->getWritablePath();
     std::string fileName = writablePath+"external.txt";
@@ -136,6 +136,25 @@ void TestSearchPath::onEnter()
             fclose(fp);
         }
     }
+
+    // Save old resource root path
+    std::string oldDefaultRootPath = sharedFileUtils->getDefaultResourceRootPath();
+    sharedFileUtils->setDefaultResourceRootPath(oldDefaultRootPath + "extensions");
+    auto sp1 = Sprite::create("orange_edit.png");
+    sp1->setPosition(VisibleRect::center());
+    addChild(sp1);
+
+    // Recover resource root path
+    sharedFileUtils->setDefaultResourceRootPath(oldDefaultRootPath);
+
+    auto oldSearchPaths = sharedFileUtils->getOriginalSearchPaths();
+    sharedFileUtils->addSearchPath("Images");
+    auto sp2 = Sprite::create("btn-about-normal.png");
+    sp2->setPosition(VisibleRect::center() + Vec2(0, -50));
+    addChild(sp2);
+
+    // Recover old search paths
+    sharedFileUtils->setSearchPaths(oldSearchPaths);
 }
 
 void TestSearchPath::onExit()
@@ -155,7 +174,7 @@ std::string TestSearchPath::title() const
 
 std::string TestSearchPath::subtitle() const
 {
-    return "See the console";
+    return "See the console, can see a orange box and a 'about' picture";
 }
 
 // TestFilenameLookup
@@ -490,7 +509,7 @@ void TextWritePlist::onEnter()
     auto booleanObject = __Bool::create(true);
     dictInDict->setObject(booleanObject, "bool");
 
-    //add interger to the plist
+    //add integer to the plist
     auto intObject = __Integer::create(1024);
     dictInDict->setObject(intObject, "integer");
 
@@ -816,7 +835,7 @@ void TestWriteValueMap::onEnter()
     auto booleanObject = Value(true);
     valueMap["data3"] = booleanObject;
 
-    //add interger to the plist
+    //add integer to the plist
     auto intObject = Value(1024);
     valueMap["data4"] = intObject;
 
@@ -919,7 +938,7 @@ void TestWriteValueVector::onEnter()
     auto booleanObject = Value(true);
     array.push_back(booleanObject);
 
-    //add interger to the plist
+    //add integer to the plist
     auto intObject = Value(1024);
     array.push_back(intObject);
 
