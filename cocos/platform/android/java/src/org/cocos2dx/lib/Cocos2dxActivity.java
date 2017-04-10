@@ -402,8 +402,10 @@ public abstract class Cocos2dxActivity extends Activity implements Cocos2dxHelpe
 
             int[] attributes = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL10.EGL_NONE };
             // attempt to create a OpenGL ES 3.0 context
-            EGLContext context = egl.eglCreateContext(
-                display, eglConfig, EGL10.EGL_NO_CONTEXT, attributes);
+//            EGLContext context = egl.eglCreateContext(
+//                display, eglConfig, EGL10.EGL_NO_CONTEXT, attributes);
+
+            EGLContext context = null;
 
             if (context == null) {
                 attributes = new int[] {EGL_CONTEXT_CLIENT_VERSION, 2, EGL10.EGL_NONE };
