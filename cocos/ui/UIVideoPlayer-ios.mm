@@ -53,6 +53,7 @@ using namespace cocos2d::experimental::ui;
 
 -(id) init:(void*) videoPlayer;
 
+-(void) videoExited:(NSNotification *)notification;
 -(void) videoFinished:(NSNotification*) notification;
 -(void) playStateChange;
 
@@ -85,6 +86,7 @@ using namespace cocos2d::experimental::ui;
 {
     if (self.moviePlayer != nullptr) {
         [[NSNotificationCenter defaultCenter] removeObserver:self name:MPMoviePlayerPlaybackDidFinishNotification object:self.moviePlayer];
+        [[NSNotificationCenter defaultCenter] removeObserver:self name:MPMoviePlayerWillExitFullscreenNotification object:self.moviePlayer];
         [[NSNotificationCenter defaultCenter] removeObserver:self name:MPMoviePlayerPlaybackStateDidChangeNotification object:self.moviePlayer];
 
         [self.moviePlayer stop];
@@ -126,6 +128,7 @@ using namespace cocos2d::experimental::ui;
 {
     if (self.moviePlayer != nullptr) {
         [[NSNotificationCenter defaultCenter] removeObserver:self name:MPMoviePlayerPlaybackDidFinishNotification object:self.moviePlayer];
+        [[NSNotificationCenter defaultCenter] removeObserver:self name:MPMoviePlayerWillExitFullscreenNotification object:self.moviePlayer];
         [[NSNotificationCenter defaultCenter] removeObserver:self name:MPMoviePlayerPlaybackStateDidChangeNotification object:self.moviePlayer];
 
         [self.moviePlayer stop];
@@ -163,8 +166,18 @@ using namespace cocos2d::experimental::ui;
     [eaglview addSubview:self.moviePlayer.view];
 
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(videoFinished:) name:MPMoviePlayerPlaybackDidFinishNotification object:self.moviePlayer];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(videoExited:) name:MPMoviePlayerWillExitFullscreenNotification object:self.moviePlayer];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(playStateChange) name:MPMoviePlayerPlaybackStateDidChangeNotification object:self.moviePlayer];
 }
+
+
+-(void) videoExited:(NSNotification *)notification
+{
+    if(_videoPlayer != nullptr) {
+        _videoPlayer->onPlayEvent((int) VideoPlayer::EventType::STOPPED);
+    }
+}
+
 
 -(void) videoFinished:(NSNotification *)notification
 {
