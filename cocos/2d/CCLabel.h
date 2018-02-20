@@ -60,7 +60,7 @@ typedef struct _ttfConfig
     bool underline;
     bool strikethrough;
 
-    _ttfConfig(const std::string& filePath = "",float size = 12, const GlyphCollection& glyphCollection = GlyphCollection::DYNAMIC,
+    _ttfConfig(std::string filePath = "",float size = 12, const GlyphCollection& glyphCollection = GlyphCollection::DYNAMIC,
         const char *customGlyphCollection = nullptr, bool useDistanceField = false, int outline = 0,
                bool useItalics = false, bool useBold = false, bool useUnderline = false, bool useStrikethrough = false)
         : fontFilePath(filePath)
@@ -252,7 +252,7 @@ public:
      * Returns the TTF configuration object used by the Label.
      * @see `TTFConfig`
      */
-    virtual const TTFConfig& getTTFConfig() const { return _fontConfig;}
+    virtual const TTFConfig& getTTFConfig() const { return *_fontConfig;}
 
     /** Sets a new bitmap font to Label */
     virtual bool setBMFontFilePath(const std::string& bmfontFilePath, const Vec2& imageOffset = Vec2::ZERO, float fontSize = 0);
@@ -692,7 +692,7 @@ protected:
     int _numberOfLines;
 
     std::string _bmFontPath;
-    TTFConfig _fontConfig;
+    TTFConfig *_fontConfig;
     float _outlineSize;
 
     bool _systemFontDirty;
