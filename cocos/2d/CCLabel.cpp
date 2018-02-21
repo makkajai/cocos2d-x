@@ -320,13 +320,12 @@ bool Label::initWithTTF(const std::string& text,
 {
     if (FileUtils::getInstance()->isFileExist(fontFilePath))
     {
-        TTFConfig *ttfConfig = new TTFConfig(fontFilePath, fontSize, GlyphCollection::DYNAMIC);
-        if (setTTFConfig(*ttfConfig))
+        TTFConfig ttfConfig(fontFilePath, fontSize, GlyphCollection::DYNAMIC);
+        if (setTTFConfig(ttfConfig))
         {
             setDimensions(dimensions.width, dimensions.height);
             setString(text);
         }
-        CC_SAFE_DELETE(ttfConfig);
         return true;
     }
     return false;
@@ -385,7 +384,6 @@ Label::Label(TextHAlignment hAlignment /* = TextHAlignment::LEFT */,
 , _boldEnabled(false)
 , _underlineNode(nullptr)
 , _strikethroughEnabled(false)
-, _fontConfig(nullptr)
 {
     setAnchorPoint(Vec2::ANCHOR_MIDDLE);
     reset();
@@ -418,7 +416,7 @@ Label::Label(TextHAlignment hAlignment /* = TextHAlignment::LEFT */,
         if (_fontAtlas && _currentLabelType == LabelType::TTF && event->getUserData() == _fontAtlas)
         {
             _fontAtlas = nullptr;
-            this->setTTFConfig(*_fontConfig);
+            this->setTTFConfig(_fontConfig);
             for (auto&& it : _letters)
             {
                 getLetter(it.first);
@@ -430,7 +428,6 @@ Label::Label(TextHAlignment hAlignment /* = TextHAlignment::LEFT */,
 
 Label::~Label()
 {
-    CCLOGERROR("Releasing Label: %s", getString().c_str());
     delete [] _horizontalKernings;
 
     if (_fontAtlas)
@@ -445,7 +442,6 @@ Label::~Label()
 
     CC_SAFE_RELEASE_NULL(_textSprite);
     CC_SAFE_RELEASE_NULL(_shadowNode);
-    CC_SAFE_DELETE(_fontConfig);
 }
 
 void Label::reset()
@@ -471,9 +467,8 @@ void Label::reset()
     _utf32Text.clear();
     _utf8Text.clear();
 
-    CC_SAFE_DELETE(_fontConfig);
-    _fontConfig = new TTFConfig("Helvetica");
-
+    TTFConfig temp;
+    _fontConfig = temp;
     _outlineSize = 0.f;
     _bmFontPath = "";
     _systemFontDirty = false;
@@ -988,13 +983,11 @@ bool Label::setTTFConfigInternal(const TTFConfig& ttfConfig)
     _currentLabelType = LabelType::TTF;
     setFontAtlas(newAtlas,ttfConfig.distanceFieldEnabled,true);
 
-    auto tempFontConfig = _fontConfig;
-    _fontConfig = new TTFConfig(ttfConfig);
-    CC_SAFE_DELETE(tempFontConfig);
+    _fontConfig = ttfConfig;
 
-    if (_fontConfig->outlineSize > 0)
+    if (_fontConfig.outlineSize > 0)
     {
-        _fontConfig->distanceFieldEnabled = false;
+        _fontConfig.distanceFieldEnabled = false;
         _useDistanceField = false;
         _useA8Shader = false;
         _currLabelEffect = LabelEffect::OUTLINE;
@@ -1006,13 +999,13 @@ bool Label::setTTFConfigInternal(const TTFConfig& ttfConfig)
         updateShaderProgram();
     }
 
-    if (_fontConfig->italics)
+    if (_fontConfig.italics)
         this->enableItalics();
-    if (_fontConfig->bold)
+    if (_fontConfig.bold)
         this->enableBold();
-    if (_fontConfig->underline)
+    if (_fontConfig.underline)
         this->enableUnderline();
-    if (_fontConfig->strikethrough)
+    if (_fontConfig.strikethrough)
         this->enableStrikethrough();
 
     return true;
@@ -1052,9 +1045,9 @@ void Label::enableGlow(const Color4B& glowColor)
 {
     if (_currentLabelType == LabelType::TTF)
     {
-        if (_fontConfig->distanceFieldEnabled == false)
+        if (_fontConfig.distanceFieldEnabled == false)
         {
-            auto config = this->getTTFConfig();
+            auto config = _fontConfig;
             config.outlineSize = 0;
             config.distanceFieldEnabled = true;
             setTTFConfig(config);
@@ -1082,10 +1075,10 @@ void Label::enableOutline(const Color4B& outlineColor,int outlineSize /* = -1 */
             _effectColorF.b = outlineColor.b / 255.0f;
             _effectColorF.a = outlineColor.a / 255.0f;
 
-            if (outlineSize > 0 && _fontConfig->outlineSize != outlineSize)
+            if (outlineSize > 0 && _fontConfig.outlineSize != outlineSize)
             {
-                _fontConfig->outlineSize = outlineSize;
-                setTTFConfig(*_fontConfig);
+                _fontConfig.outlineSize = outlineSize;
+                setTTFConfig(_fontConfig);
             }
         }
         else if (_effectColorF != outlineColor || _outlineSize != outlineSize)
@@ -1203,8 +1196,8 @@ void Label::disableEffect(LabelEffect effect)
             {
                 if (_currentLabelType == LabelType::TTF)
                 {
-                    _fontConfig->outlineSize = 0;
-                    setTTFConfig(*_fontConfig);
+                    _fontConfig.outlineSize = 0;
+                    setTTFConfig(_fontConfig);
                 }
                 _currLabelEffect = LabelEffect::NORMAL;
                 _contentDirty = true;
