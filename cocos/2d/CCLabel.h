@@ -46,7 +46,7 @@ NS_CC_BEGIN
  */
 typedef struct _ttfConfig
 {
-    std::string fontFilePath;
+    char *fontFilePath;
     float fontSize;
 
     GlyphCollection glyphs;
@@ -60,25 +60,14 @@ typedef struct _ttfConfig
     bool underline;
     bool strikethrough;
 
-    _ttfConfig(const std::string& filePath = "",float size = 12, const GlyphCollection& glyphCollection = GlyphCollection::DYNAMIC,
-        const char *customGlyphCollection = nullptr, bool useDistanceField = false, int outline = 0,
-               bool useItalics = false, bool useBold = false, bool useUnderline = false, bool useStrikethrough = false)
-        : fontFilePath(filePath)
-        , fontSize(size)
-        , glyphs(glyphCollection)
-        , customGlyphs(customGlyphCollection)
-        , distanceFieldEnabled(useDistanceField)
-        , outlineSize(outline)
-        , italics(useItalics)
-        , bold(useBold)
-        , underline(useUnderline)
-        , strikethrough(useStrikethrough)
-    {
-        if(outline > 0)
-        {
-            distanceFieldEnabled = false;
-        }
-    }
+    _ttfConfig(const char *filePath = "",float size = 12, const GlyphCollection& glyphCollection = GlyphCollection::DYNAMIC,
+            const char *customGlyphCollection = nullptr, bool useDistanceField = false, int outline = 0,
+            bool useItalics = false, bool useBold = false, bool useUnderline = false, bool useStrikethrough = false);
+
+    ~_ttfConfig();
+
+    void updateFontName(const std::string filePath);
+
 } TTFConfig;
 
 enum class TextFormatter : char
@@ -184,7 +173,7 @@ public:
     * @return An automatically released Label object.
     * @see TTFConfig setTTFConfig setMaxLineWidth
     */
-    static Label* createWithTTF(const TTFConfig& ttfConfig, const std::string& text, 
+    static Label* createWithTTF(TTFConfig *ttfConfig, const std::string& text,
         TextHAlignment hAlignment = TextHAlignment::LEFT, int maxLineWidth = 0);
 
     /**
@@ -246,13 +235,13 @@ public:
      * Sets a new TTF configuration to Label.
      * @see `TTFConfig`
      */
-    virtual bool setTTFConfig(const TTFConfig& ttfConfig);
+    virtual bool setTTFConfig(TTFConfig *ttfConfig);
 
     /**
      * Returns the TTF configuration object used by the Label.
      * @see `TTFConfig`
      */
-    virtual const TTFConfig& getTTFConfig() const { return _fontConfig;}
+    virtual TTFConfig* getTTFConfig() const { return _fontConfig;}
 
     /** Sets a new bitmap font to Label */
     virtual bool setBMFontFilePath(const std::string& bmfontFilePath, const Vec2& imageOffset = Vec2::ZERO, float fontSize = 0);
@@ -617,7 +606,7 @@ CC_CONSTRUCTOR_ACCESS:
                      const Size& dimensions = Size::ZERO, TextHAlignment hAlignment = TextHAlignment::LEFT,
                      TextVAlignment vAlignment = TextVAlignment::TOP);
 
-    bool initWithTTF(const TTFConfig& ttfConfig, const std::string& text,
+    bool initWithTTF(TTFConfig *ttfConfig, const std::string& text,
                      TextHAlignment hAlignment = TextHAlignment::LEFT, int maxLineWidth = 0);
 
 protected:
@@ -671,7 +660,7 @@ protected:
     virtual void updateShaderProgram();
     void updateBMFontScale();
     void scaleFontSizeDown(float fontSize);
-    bool setTTFConfigInternal(const TTFConfig& ttfConfig);
+    bool setTTFConfigInternal(TTFConfig *ttfConfig);
     void setBMFontSizeInternal(float fontSize);
     bool isHorizontalClamped(float letterPositionX, int lineIndex);
     void restoreFontSize();
@@ -692,7 +681,7 @@ protected:
     int _numberOfLines;
 
     std::string _bmFontPath;
-    TTFConfig _fontConfig;
+    TTFConfig *_fontConfig;
     float _outlineSize;
 
     bool _systemFontDirty;

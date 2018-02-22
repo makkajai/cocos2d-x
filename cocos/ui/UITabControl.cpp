@@ -597,8 +597,8 @@ namespace ui
         }
         else if (_fontType == FontType::TTF)
         {
-            TTFConfig config = _tabLabelRender->getTTFConfig();
-            config.fontSize = _tabLabelFontSize;
+            TTFConfig *config = _tabLabelRender->getTTFConfig();
+            config->fontSize = _tabLabelFontSize;
             _tabLabelRender->setTTFConfig(config);
         }
         //we can't change font size of BMFont.
@@ -633,9 +633,9 @@ namespace ui
             }
             else
             {
-                TTFConfig config = _tabLabelRender->getTTFConfig();
-                config.fontFilePath = fontName;
-                config.fontSize = _tabLabelFontSize;
+                TTFConfig *config = _tabLabelRender->getTTFConfig();
+                config->updateFontName(fontName);
+                config->fontSize = _tabLabelFontSize;
                 _tabLabelRender->setTTFConfig(config);
                 _fontType = FontType::TTF;
             }
@@ -666,7 +666,7 @@ namespace ui
         }
         else if (this->_fontType == FontType::TTF)
         {
-            return  _tabLabelRender->getTTFConfig().fontFilePath;
+            return  _tabLabelRender->getTTFConfig()->fontFilePath;
         }
         else
         {

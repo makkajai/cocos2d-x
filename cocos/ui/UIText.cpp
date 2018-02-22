@@ -138,8 +138,8 @@ void Text::setFontSize(float size)
     }
     else
     {
-        TTFConfig config = _labelRenderer->getTTFConfig();
-        config.fontSize = size;
+        TTFConfig *config = _labelRenderer->getTTFConfig();
+        config->fontSize = size;
         _labelRenderer->setTTFConfig(config);
     }
     _fontSize = size;
@@ -156,9 +156,9 @@ void Text::setFontName(const std::string& name)
 {
     if(FileUtils::getInstance()->isFileExist(name))
     {
-        TTFConfig config = _labelRenderer->getTTFConfig();
-        config.fontFilePath = name;
-        config.fontSize = _fontSize;
+        TTFConfig *config = _labelRenderer->getTTFConfig();
+        config->updateFontName(name);
+        config->fontSize = _fontSize;
         _labelRenderer->setTTFConfig(config);
         _type = Type::TTF;
     }

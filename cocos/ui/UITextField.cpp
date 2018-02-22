@@ -461,8 +461,8 @@ void TextField::setFontSize(int size)
     }
     else
     {
-        TTFConfig config = _textFieldRenderer->getTTFConfig();
-        config.fontSize = size;
+        TTFConfig *config = _textFieldRenderer->getTTFConfig();
+        config->fontSize = size;
         _textFieldRenderer->setTTFConfig(config);
     }
     _fontSize = size;
@@ -479,9 +479,9 @@ void TextField::setFontName(const std::string& name)
 {
     if(FileUtils::getInstance()->isFileExist(name))
     {
-        TTFConfig config = _textFieldRenderer->getTTFConfig();
-        config.fontFilePath = name;
-        config.fontSize = _fontSize;
+        TTFConfig *config = _textFieldRenderer->getTTFConfig();
+        config->updateFontName(name);
+        config->fontSize = _fontSize;
         _textFieldRenderer->setTTFConfig(config);
         _fontType = FontType::TTF;
     }
