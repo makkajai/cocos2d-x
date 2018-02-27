@@ -47,6 +47,50 @@ void FontAtlasCache::purgeCachedData()
     _atlasMap.clear();
 }
 
+FontAtlas* FontAtlasCache::getFontAtlasTTF(const _ttfConfig* config, std::string fontFilePath)
+{
+    auto realFontFilename = FileUtils::getInstance()->getNewFilename(fontFilePath);  // resolves real file path, to prevent storing multiple atlases for the same file.
+    bool useDistanceField = config->distanceFieldEnabled;
+    if(config->outlineSize > 0)
+    {
+        useDistanceField = false;
+    }
+
+    char tmp[ATLAS_MAP_KEY_BUFFER];
+    if (useDistanceField) {
+        snprintf(tmp, ATLAS_MAP_KEY_BUFFER, "df %.2f %d %s", config->fontSize, config->outlineSize,
+                 realFontFilename.c_str());
+    } else {
+        snprintf(tmp, ATLAS_MAP_KEY_BUFFER, "%.2f %d %s", config->fontSize, config->outlineSize,
+                 realFontFilename.c_str());
+    }
+    std::string atlasName = tmp;
+
+    auto it = _atlasMap.find(atlasName);
+
+    if ( it == _atlasMap.end() )
+    {
+        auto font = FontFreeType::create(realFontFilename, config->fontSize, config->glyphs,
+            config->customGlyphs, useDistanceField, config->outlineSize);
+        if (font)
+        {
+            auto tempAtlas = font->createFontAtlas();
+            if (tempAtlas)
+            {
+                _atlasMap[atlasName] = tempAtlas;
+                return _atlasMap[atlasName];
+            }
+        }
+    }
+    else
+    {
+        _atlasMap[atlasName]->retain();
+        return _atlasMap[atlasName];
+    }
+
+    return nullptr;
+}
+
 FontAtlas* FontAtlasCache::getFontAtlasTTF(const _ttfConfig* config)
 {
     auto realFontFilename = FileUtils::getInstance()->getNewFilename(config->fontFilePath);  // resolves real file path, to prevent storing multiple atlases for the same file.

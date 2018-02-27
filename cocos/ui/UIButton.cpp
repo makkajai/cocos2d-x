@@ -818,7 +818,7 @@ void Button::setTitleFontName(const std::string& fontName)
         else
         {
             TTFConfig *config = _titleRenderer->getTTFConfig();
-            config->updateFontName(fontName);
+            _titleRenderer->setFontFilePath(fontName);
             config->fontSize = _fontSize;
             _titleRenderer->setTTFConfig(config);
             _type = FontType::TTF;

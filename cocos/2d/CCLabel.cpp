@@ -320,6 +320,7 @@ bool Label::initWithTTF(const std::string& text,
 {
     if (FileUtils::getInstance()->isFileExist(fontFilePath))
     {
+        _fontFilePath = std::string(fontFilePath);
         TTFConfig *ttfConfig = new TTFConfig(fontFilePath.c_str(), fontSize, GlyphCollection::DYNAMIC);
         if (setTTFConfig(ttfConfig))
         {
@@ -333,7 +334,7 @@ bool Label::initWithTTF(const std::string& text,
 
 bool Label::initWithTTF(TTFConfig *ttfConfig, const std::string& text, TextHAlignment /*hAlignment*/, int maxLineWidth)
 {
-    if (FileUtils::getInstance()->isFileExist(ttfConfig->fontFilePath) && setTTFConfig(ttfConfig))
+    if (FileUtils::getInstance()->isFileExist(_fontFilePath) && setTTFConfig(ttfConfig))
     {
         setMaxLineWidth(maxLineWidth);
         setString(text);
@@ -677,6 +678,15 @@ void Label::setString(const std::string& text)
     }
 }
 
+void Label::setFontFilePath(const std::string& fontFilePath)
+{
+    if (fontFilePath.compare(_fontFilePath))
+    {
+        _fontFilePath = fontFilePath;
+        _contentDirty = true;
+    }
+}
+
 void Label::setAlignment(TextHAlignment hAlignment,TextVAlignment vAlignment)
 {
     if (hAlignment != _hAlignment || vAlignment != _vAlignment)
@@ -974,7 +984,7 @@ bool Label::updateQuads()
 
 bool Label::setTTFConfigInternal(TTFConfig *ttfConfig)
 {
-    FontAtlas *newAtlas = FontAtlasCache::getFontAtlasTTF(ttfConfig);
+    FontAtlas *newAtlas = FontAtlasCache::getFontAtlasTTF(ttfConfig, _fontFilePath);
 
     if (!newAtlas)
     {
@@ -2230,9 +2240,6 @@ void Label::updateLetterSpriteScale(Sprite* sprite)
             , underline(useUnderline)
             , strikethrough(useStrikethrough)
     {
-        CC_SAFE_DELETE_ARRAY(fontFilePath);
-        fontFilePath = new char[strlen(filePath) + 1];
-        strcpy(fontFilePath, filePath);
         if(outline > 0)
         {
             distanceFieldEnabled = false;
@@ -2242,12 +2249,5 @@ void Label::updateLetterSpriteScale(Sprite* sprite)
     _ttfConfig::~_ttfConfig() {
         CC_SAFE_DELETE_ARRAY(fontFilePath);
     }
-
-    void _ttfConfig::updateFontName(const std::string filePath) {
-        CC_SAFE_DELETE_ARRAY(fontFilePath);
-        fontFilePath = new char[filePath.length() + 1];
-        strcpy(fontFilePath, filePath.c_str());
-    }
-
 
 NS_CC_END

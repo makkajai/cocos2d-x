@@ -298,6 +298,8 @@ public:
     /** Sets the text that this Label is to display.*/
     virtual void setString(const std::string& text) override;
 
+    virtual void setFontFilePath(const std::string& fontFilePath);
+
     /** Return the text the Label is currently displaying.*/
     virtual const std::string& getString() const override {  return _utf8Text; }
 
@@ -678,6 +680,7 @@ protected:
     bool _contentDirty;
     std::u32string _utf32Text;
     std::string _utf8Text;
+    std::string _fontFilePath;
     int _numberOfLines;
 
     std::string _bmFontPath;

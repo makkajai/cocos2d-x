@@ -634,7 +634,7 @@ namespace ui
             else
             {
                 TTFConfig *config = _tabLabelRender->getTTFConfig();
-                config->updateFontName(fontName);
+                _tabLabelRender->setFontFilePath(fontName);
                 config->fontSize = _tabLabelFontSize;
                 _tabLabelRender->setTTFConfig(config);
                 _fontType = FontType::TTF;

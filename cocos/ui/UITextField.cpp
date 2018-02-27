@@ -480,7 +480,7 @@ void TextField::setFontName(const std::string& name)
     if(FileUtils::getInstance()->isFileExist(name))
     {
         TTFConfig *config = _textFieldRenderer->getTTFConfig();
-        config->updateFontName(name);
+        _textFieldRenderer->setFontFilePath(name);
         config->fontSize = _fontSize;
         _textFieldRenderer->setTTFConfig(config);
         _fontType = FontType::TTF;
