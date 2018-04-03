@@ -2,7 +2,8 @@
 Copyright (c) 2008-2010 Ricardo Quesada
 Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2011      Zynga Inc.
-Copyright (c) 2013-2017 Chukong Technologies Inc.
+Copyright (c) 2013-2016 Chukong Technologies Inc.
+Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
 http://www.cocos2d-x.org
 
@@ -441,6 +442,7 @@ void Scheduler::priorityIn(tListEntry **list, const ccSchedulerFunc& callback, v
     hashElement->target = target;
     hashElement->list = list;
     hashElement->entry = listElement;
+    memset(&hashElement->hh, 0, sizeof(hashElement->hh));
     HASH_ADD_PTR(_hashForUpdates, target, hashElement);
 }
 
@@ -461,6 +463,7 @@ void Scheduler::appendIn(_listEntry **list, const ccSchedulerFunc& callback, voi
     hashElement->target = target;
     hashElement->list = list;
     hashElement->entry = listElement;
+    memset(&hashElement->hh, 0, sizeof(hashElement->hh));
     HASH_ADD_PTR(_hashForUpdates, target, hashElement);
 }
 
@@ -500,7 +503,7 @@ void Scheduler::schedulePerFrame(const ccSchedulerFunc& callback, void *target, 
     }
 }
 
-bool Scheduler::isScheduled(const std::string& key, void *target)
+bool Scheduler::isScheduled(const std::string& key, const void *target) const
 {
     CCASSERT(!key.empty(), "Argument key must not be empty");
     CCASSERT(target, "Argument target must be non-nullptr");
@@ -1003,7 +1006,7 @@ void Scheduler::schedule(SEL_SCHEDULE selector, Ref *target, float interval, boo
     this->schedule(selector, target, interval, CC_REPEAT_FOREVER, 0.0f, paused);
 }
 
-bool Scheduler::isScheduled(SEL_SCHEDULE selector, Ref *target)
+bool Scheduler::isScheduled(SEL_SCHEDULE selector, const Ref *target) const
 {
     CCASSERT(selector, "Argument selector must be non-nullptr");
     CCASSERT(target, "Argument target must be non-nullptr");
