@@ -477,9 +477,10 @@ void TextField::setFontName(const std::string& name)
             _fontType = FontType::BMFONT;
         }
         else {
-            TTFConfig config = _textFieldRenderer->getTTFConfig();
-            config.fontFilePath = name;
-            config.fontSize = _fontSize;
+            TTFConfig *config = _textFieldRenderer->getTTFConfig();
+            _textFieldRenderer->setFontFilePath(name);
+            config->fontFilePath = nullptr;
+            config->fontSize = _fontSize;
             _textFieldRenderer->setTTFConfig(config);
             _fontType = FontType::TTF;
         }
