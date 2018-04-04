@@ -2,7 +2,8 @@
 Copyright (c) 2008-2010 Ricardo Quesada
 Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2011      Zynga Inc.
-Copyright (c) 2013-2017 Chukong Technologies Inc.
+Copyright (c) 2013-2016 Chukong Technologies Inc.
+Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
 http://www.cocos2d-x.org
 
@@ -363,7 +364,7 @@ public:
      @return True if the specified callback is invoked, false if not.
      @since v3.0.0
      */
-    bool isScheduled(const std::string& key, void *target);
+    bool isScheduled(const std::string& key, const void *target) const;
     
     /** Checks whether a selector for a given target is scheduled.
      @param selector The selector to be checked.
@@ -371,7 +372,7 @@ public:
      @return True if the specified selector is invoked, false if not.
      @since v3.0
      */
-    bool isScheduled(SEL_SCHEDULE selector, Ref *target);
+    bool isScheduled(SEL_SCHEDULE selector, const Ref *target) const;
     
     /////////////////////////////////////
     
