@@ -55,6 +55,7 @@ local.properties
 *.pyc
 
 # Ignore files build by airplay and marmalade
+build/cocos2d_tests.xcodeproj/project.xcworkspace/
 build_*_xcode/
 build_*_vc10/
 
