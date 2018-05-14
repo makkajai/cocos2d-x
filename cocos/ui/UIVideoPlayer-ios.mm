@@ -183,6 +183,12 @@ using namespace cocos2d::experimental::ui;
 {
     if(_videoPlayer != nullptr)
     {
+        //fix : ios 11.3 sends wrong notificaiton here, we need to ignore it
+        if ([self.moviePlayer playbackState] == MPMoviePlaybackStatePlaying)
+        {
+            return;
+        }
+
         if([self.moviePlayer playbackState] != MPMoviePlaybackStateStopped)
         {
             _videoPlayer->onPlayEvent((int)VideoPlayer::EventType::COMPLETED);
