@@ -158,12 +158,12 @@ using namespace cocos2d::experimental::ui;
 
 
 - (void) playerDidFinishPlaying:(NSNotification *)note {
-    NSLog(@"Video Finished");
     _videoPlayer->onPlayEvent((int)VideoPlayer::EventType::COMPLETED);
 }
 
 -(void) seekTo:(float)sec
 {
+    [self.moviePlayer.player seekToTime:CMTimeMakeWithSeconds(sec, 1)];
 }
 
 -(void) setVisible:(BOOL)visible
