@@ -54,6 +54,7 @@ RenderTexture::RenderTexture()
 , _textureCopy(0)
 , _UITextureImage(nullptr)
 , _pixelFormat(Texture2D::PixelFormat::RGBA8888)
+, _depthAndStencilFormat(0)
 , _clearFlags(0)
 , _clearColor(Color4F(0,0,0,0))
 , _clearDepth(0.0f)
@@ -61,7 +62,6 @@ RenderTexture::RenderTexture()
 , _autoDraw(false)
 , _sprite(nullptr)
 , _saveFileCallback(nullptr)
-, _depthAndStencilFormat(0)
 {
 #if CC_ENABLE_CACHE_TEXTURE_DATA
     // Listen this event to save render texture before come to background.
@@ -506,6 +506,28 @@ void RenderTexture::visit(Renderer *renderer, const Mat4 &parentTransform, uint3
     // setOrderOfArrival(0);
 }
 
+bool RenderTexture::saveToFileAsNonPMA(const std::string& filename, bool isRGBA, std::function<void(RenderTexture*, const std::string&)> callback)
+{
+    std::string basename(filename);
+    std::transform(basename.begin(), basename.end(), basename.begin(), ::tolower);
+
+    if (basename.find(".png") != std::string::npos)
+    {
+        return saveToFileAsNonPMA(filename, Image::Format::PNG, isRGBA, callback);
+    }
+    else if (basename.find(".jpg") != std::string::npos)
+    {
+        if (isRGBA) CCLOG("RGBA is not supported for JPG format.");
+        return saveToFileAsNonPMA(filename, Image::Format::JPG, false, callback);
+    }
+    else
+    {
+        CCLOG("Only PNG and JPG format are supported now!");
+    }
+
+    return saveToFileAsNonPMA(filename, Image::Format::JPG, false, callback);
+}
+
 bool RenderTexture::saveToFile(const std::string& filename, bool isRGBA, std::function<void (RenderTexture*, const std::string&)> callback)
 {
     std::string basename(filename);
@@ -528,6 +550,22 @@ bool RenderTexture::saveToFile(const std::string& filename, bool isRGBA, std::fu
     return saveToFile(filename, Image::Format::JPG, false, callback);
 }
 
+bool RenderTexture::saveToFileAsNonPMA(const std::string& fileName, Image::Format format, bool isRGBA, std::function<void(RenderTexture*, const std::string&)> callback)
+{
+    CCASSERT(format == Image::Format::JPG || format == Image::Format::PNG,
+        "the image can only be saved as JPG or PNG format");
+    if (isRGBA && format == Image::Format::JPG) CCLOG("RGBA is not supported for JPG format");
+
+    _saveFileCallback = callback;
+
+    std::string fullpath = FileUtils::getInstance()->getWritablePath() + fileName;
+    _saveToFileCommand.init(_globalZOrder);
+    _saveToFileCommand.func = CC_CALLBACK_0(RenderTexture::onSaveToFile, this, fullpath, isRGBA, true);
+
+    Director::getInstance()->getRenderer()->addCommand(&_saveToFileCommand);
+    return true;
+}
+
 bool RenderTexture::saveToFile(const std::string& fileName, Image::Format format, bool isRGBA, std::function<void (RenderTexture*, const std::string&)> callback)
 {
     CCASSERT(format == Image::Format::JPG || format == Image::Format::PNG,
@@ -538,17 +576,21 @@ bool RenderTexture::saveToFile(const std::string& fileName, Image::Format format
     
     std::string fullpath = FileUtils::getInstance()->getWritablePath() + fileName;
     _saveToFileCommand.init(_globalZOrder);
-    _saveToFileCommand.func = CC_CALLBACK_0(RenderTexture::onSaveToFile, this, fullpath, isRGBA);
+    _saveToFileCommand.func = CC_CALLBACK_0(RenderTexture::onSaveToFile, this, fullpath, isRGBA, false);
     
     Director::getInstance()->getRenderer()->addCommand(&_saveToFileCommand);
     return true;
 }
 
-void RenderTexture::onSaveToFile(const std::string& filename, bool isRGBA)
+void RenderTexture::onSaveToFile(const std::string& filename, bool isRGBA, bool forceNonPMA)
 {
     Image *image = newImage(true);
     if (image)
     {
+        if (forceNonPMA && image->hasPremultipliedAlpha())
+        {
+            image->reversePremultipliedAlpha();
+        }
         image->saveToFile(filename, !isRGBA);
     }
     if(_saveFileCallback)
@@ -620,11 +662,11 @@ Image* RenderTexture::newImage(bool flipImage)
                        savedBufferWidth * 4);
             }
 
-            image->initWithRawData(buffer, savedBufferWidth * savedBufferHeight * 4, savedBufferWidth, savedBufferHeight, 8);
+            image->initWithRawData(buffer, savedBufferWidth * savedBufferHeight * 4, savedBufferWidth, savedBufferHeight, 8, true);
         }
         else
         {
-            image->initWithRawData(tempData, savedBufferWidth * savedBufferHeight * 4, savedBufferWidth, savedBufferHeight, 8);
+            image->initWithRawData(tempData, savedBufferWidth * savedBufferHeight * 4, savedBufferWidth, savedBufferHeight, 8, true);
         }
         
     } while (0);
@@ -796,12 +838,6 @@ void RenderTexture::draw(Renderer *renderer, const Mat4 &transform, uint32_t fla
     }
 }
 
-void RenderTexture::setGlobalZOrder(float globalZOrder)
-{
-    Node::setGlobalZOrder(globalZOrder);
-    _sprite->setGlobalZOrder(globalZOrder);
-}
-
 void RenderTexture::begin()
 {
     Director* director = Director::getInstance();
@@ -836,8 +872,7 @@ void RenderTexture::begin()
     renderer->addCommand(&_groupCommand);
     renderer->pushGroup(_groupCommand.getRenderQueueID());
 
-    // Begine command should be the first command of the command group.
-    _beginCommand.init(INT_MIN);
+    _beginCommand.init(_globalZOrder);
     _beginCommand.func = CC_CALLBACK_0(RenderTexture::onBegin, this);
 
     Director::getInstance()->getRenderer()->addCommand(&_beginCommand);
@@ -845,8 +880,7 @@ void RenderTexture::begin()
 
 void RenderTexture::end()
 {
-    // End command should be the last command of the command group.
-    _endCommand.init(INT_MAX);
+    _endCommand.init(_globalZOrder);
     _endCommand.func = CC_CALLBACK_0(RenderTexture::onEnd, this);
 
     Director* director = Director::getInstance();

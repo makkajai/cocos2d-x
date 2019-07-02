@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 22
+    compileSdkVersion PROP_COMPILE_SDK_VERSION.toInteger()
 
     defaultConfig {
         minSdkVersion 10

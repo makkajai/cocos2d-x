@@ -75,6 +75,7 @@ Node::Node()
 , _normalizedPositionDirty(false)
 , _skewX(0.0f)
 , _skewY(0.0f)
+, _anchorPoint(0, 0)
 , _contentSize(Size::ZERO)
 , _contentSizeDirty(true)
 , _transformDirty(true)
@@ -111,14 +112,13 @@ Node::Node()
 , _cascadeColorEnabled(false)
 , _cascadeOpacityEnabled(false)
 , _cameraMask(1)
-#if CC_USE_PHYSICS
-, _physicsBody(nullptr)
-#endif
-, _anchorPoint(0, 0)
 , _onEnterCallback(nullptr)
 , _onExitCallback(nullptr)
 , _onEnterTransitionDidFinishCallback(nullptr)
 , _onExitTransitionDidStartCallback(nullptr)
+#if CC_USE_PHYSICS
+, _physicsBody(nullptr)
+#endif
 {
     // set default scheduler and actionManager
     _director = Director::getInstance();
@@ -420,7 +420,7 @@ void Node::setRotationSkewY(float rotationY)
 }
 
 /// scale getter
-float Node::getScale(void) const
+float Node::getScale() const
 {
     CCASSERT( _scaleX == _scaleY, "CCNode#scale. ScaleX != ScaleY. Don't know which one to return");
     return _scaleX;
@@ -812,7 +812,7 @@ Node* Node::getChildByName(const std::string& name) const
     for (const auto& child : _children)
     {
         // Different strings may have the same hash code, but can use it to compare first for speed
-        if(child->_hashOfName == hash && child->_name.compare(name) == 0)
+        if(child->_hashOfName == hash && child->_name == name)
             return child;
     }
     return nullptr;
@@ -1189,7 +1189,7 @@ void Node::sortAllChildren()
 void Node::draw()
 {
     auto renderer = _director->getRenderer();
-    draw(renderer, _modelViewTransform, true);
+    draw(renderer, _modelViewTransform, FLAGS_TRANSFORM_DIRTY);
 }
 
 void Node::draw(Renderer* /*renderer*/, const Mat4 & /*transform*/, uint32_t /*flags*/)
@@ -1200,7 +1200,7 @@ void Node::visit()
 {
     auto renderer = _director->getRenderer();
     auto& parentTransform = _director->getMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
-    visit(renderer, parentTransform, true);
+    visit(renderer, parentTransform, FLAGS_TRANSFORM_DIRTY);
 }
 
 uint32_t Node::processParentFlags(const Mat4& parentTransform, uint32_t parentFlags)
@@ -1992,7 +1992,7 @@ void Node::removeAllComponents()
 
 // MARK: Opacity and Color
 
-GLubyte Node::getOpacity(void) const
+GLubyte Node::getOpacity() const
 {
     return _realOpacity;
 }
@@ -2023,7 +2023,7 @@ void Node::updateDisplayedOpacity(GLubyte parentOpacity)
     }
 }
 
-bool Node::isCascadeOpacityEnabled(void) const
+bool Node::isCascadeOpacityEnabled() const
 {
     return _cascadeOpacityEnabled;
 }
@@ -2077,7 +2077,7 @@ bool Node::isOpacityModifyRGB() const
     return false;
 }
 
-const Color3B& Node::getColor(void) const
+const Color3B& Node::getColor() const
 {
     return _realColor;
 }
@@ -2110,7 +2110,7 @@ void Node::updateDisplayedColor(const Color3B& parentColor)
     }
 }
 
-bool Node::isCascadeColorEnabled(void) const
+bool Node::isCascadeColorEnabled() const
 {
     return _cascadeColorEnabled;
 }

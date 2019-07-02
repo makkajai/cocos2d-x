@@ -51,20 +51,20 @@ static unsigned short quadIndices9[]={
 const static float PRECISION = 10.0f;
 
 PolygonInfo::PolygonInfo()
-: _rect(Rect::ZERO)
+: _isVertsOwner(true)
+, _rect(Rect::ZERO)
 , _filename("")
-, _isVertsOwner(true)
 {
     triangles.verts = nullptr;
     triangles.indices = nullptr;
     triangles.vertCount = 0;
     triangles.indexCount = 0;
-};
+}
 
 PolygonInfo::PolygonInfo(const PolygonInfo& other)
 : triangles()
-, _rect()
 , _isVertsOwner(true)
+, _rect()
 {
     _filename = other._filename;
     _isVertsOwner = true;
@@ -76,7 +76,7 @@ PolygonInfo::PolygonInfo(const PolygonInfo& other)
     triangles.indexCount = other.triangles.indexCount;
     memcpy(triangles.verts, other.triangles.verts, other.triangles.vertCount * sizeof(other.triangles.verts[0]));
     memcpy(triangles.indices, other.triangles.indices, other.triangles.indexCount * sizeof(other.triangles.indices[0]));
-};
+}
 
 PolygonInfo& PolygonInfo::operator= (const PolygonInfo& other)
 {
