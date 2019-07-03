@@ -385,12 +385,6 @@ void ControlSwitch::setOn(bool isOn, bool animated)
     sendActionsForControlEvents(Control::EventType::VALUE_CHANGED);
 }
 
-void ControlSwitch::setOnWithoutAction(bool isOn)
-{
-    _on = isOn;
-    _switchSprite->setSliderXPosition((_on) ? _switchSprite->getOnPosition() : _switchSprite->getOffPosition());
-}
-
 void ControlSwitch::setEnabled(bool enabled)
 {
     _enabled = enabled;

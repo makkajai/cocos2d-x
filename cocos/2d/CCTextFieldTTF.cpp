@@ -114,7 +114,7 @@ TextFieldTTF * TextFieldTTF::textFieldWithPlaceHolder(const std::string& placeho
     if(ret && ret->initWithPlaceHolder("", dimensions, alignment, fontName, fontSize))
     {
         ret->autorelease();
-        if (!placeholder.empty())
+        if (placeholder.size()>0)
         {
             ret->setPlaceHolder(placeholder);
         }
@@ -130,7 +130,7 @@ TextFieldTTF * TextFieldTTF::textFieldWithPlaceHolder(const std::string& placeho
     if(ret && ret->initWithPlaceHolder("", fontName, fontSize))
     {
         ret->autorelease();
-        if (!placeholder.empty())
+        if (placeholder.size()>0)
         {
             ret->setPlaceHolder(placeholder);
         }
@@ -160,7 +160,7 @@ bool TextFieldTTF::initWithPlaceHolder(const std::string& placeholder, const std
         // If fontName is ttf file and it corrected, use TTFConfig
         if (FileUtils::getInstance()->isFileExist(fontName))
         {
-            TTFConfig *ttfConfig = new TTFConfig(fontName.c_str(), fontSize, GlyphCollection::DYNAMIC);
+            TTFConfig ttfConfig(fontName, fontSize, GlyphCollection::DYNAMIC);
             if (setTTFConfig(ttfConfig))
             {
                 break;

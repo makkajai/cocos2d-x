@@ -864,12 +864,12 @@ std::string FileUtils::getPathForFilename(const std::string& filename, const std
     finalFileName = finalFileNameOnly + postfix + extensionOnly;
 
     std::string lookupPath = path;
-    path = getFullPathForDirectoryAndFilename(lookupPath, finalFileName);
+    path = getFullPathForFilenameWithinDirectory(lookupPath, finalFileName);
 
     if(path.empty()) {
         finalFileName = finalFileNameOnly + postfix1 + extensionOnly;
 
-        path = getFullPathForDirectoryAndFilename(lookupPath, finalFileName);
+        path = getFullPathForFilenameWithinDirectory(lookupPath, finalFileName);
     }
 
     return path;

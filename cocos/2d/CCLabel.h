@@ -48,7 +48,7 @@ NS_CC_BEGIN
  */
 typedef struct _ttfConfig
 {
-    char *fontFilePath;
+    std::string fontFilePath;
     float fontSize;
 
     GlyphCollection glyphs;
@@ -187,7 +187,7 @@ public:
     * @return An automatically released Label object.
     * @see TTFConfig setTTFConfig setMaxLineWidth
     */
-    static Label* createWithTTF(TTFConfig *ttfConfig, const std::string& text,
+    static Label* createWithTTF(const TTFConfig& ttfConfig, const std::string& text, 
         TextHAlignment hAlignment = TextHAlignment::LEFT, int maxLineWidth = 0);
 
     /**
@@ -249,13 +249,13 @@ public:
      * Sets a new TTF configuration to Label.
      * @see `TTFConfig`
      */
-    virtual bool setTTFConfig(TTFConfig *ttfConfig);
+    virtual bool setTTFConfig(const TTFConfig& ttfConfig);
 
     /**
      * Returns the TTF configuration object used by the Label.
      * @see `TTFConfig`
      */
-    virtual TTFConfig* getTTFConfig() const { return _fontConfig;}
+    virtual const TTFConfig& getTTFConfig() const { return _fontConfig;}
 
     /** Sets a new bitmap font to Label */
     virtual bool setBMFontFilePath(const std::string& bmfontFilePath, const Vec2& imageOffset = Vec2::ZERO, float fontSize = 0);
@@ -311,8 +311,6 @@ public:
 
     /** Sets the text that this Label is to display.*/
     virtual void setString(const std::string& text) override;
-
-    virtual void setFontFilePath(const std::string& fontFilePath);
 
     /** Return the text the Label is currently displaying.*/
     virtual const std::string& getString() const override {  return _utf8Text; }
@@ -636,7 +634,7 @@ CC_CONSTRUCTOR_ACCESS:
                      const Size& dimensions = Size::ZERO, TextHAlignment hAlignment = TextHAlignment::LEFT,
                      TextVAlignment vAlignment = TextVAlignment::TOP);
 
-    bool initWithTTF(TTFConfig *ttfConfig, const std::string& text,
+    bool initWithTTF(const TTFConfig& ttfConfig, const std::string& text,
                      TextHAlignment hAlignment = TextHAlignment::LEFT, int maxLineWidth = 0);
 
 protected:
@@ -662,7 +660,7 @@ protected:
     bool multilineTextWrapByChar();
     bool multilineTextWrapByWord();
     bool multilineTextWrap(const std::function<int(const std::u32string&, int, int)>& lambda);
-    void shrinkLabelToContentSize(const std::function<bool()>& lambda);
+    void shrinkLabelToContentSize(const std::function<bool(void)>& lambda);
     bool isHorizontalClamp();
     bool isVerticalClamp();
     void rescaleWithOriginalFontSize();
@@ -683,7 +681,7 @@ protected:
     virtual void updateShaderProgram();
     void updateBMFontScale();
     void scaleFontSizeDown(float fontSize);
-    bool setTTFConfigInternal(TTFConfig *ttfConfig);
+    bool setTTFConfigInternal(const TTFConfig& ttfConfig);
     void setBMFontSizeInternal(float fontSize);
     bool isHorizontalClamped(float letterPositionX, int lineIndex);
     void restoreFontSize();
@@ -701,11 +699,10 @@ protected:
     bool _contentDirty;
     std::u32string _utf32Text;
     std::string _utf8Text;
-    std::string _fontFilePath;
     int _numberOfLines;
 
     std::string _bmFontPath;
-    TTFConfig *_fontConfig;
+    TTFConfig _fontConfig;
     float _outlineSize;
 
     bool _systemFontDirty;

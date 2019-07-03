@@ -229,7 +229,7 @@ Label* Label::createWithTTF(const std::string& text, const std::string& fontFile
     return nullptr;
 }
 
-Label* Label::createWithTTF(TTFConfig *ttfConfig, const std::string& text, TextHAlignment hAlignment /* = TextHAlignment::CENTER */, int maxLineWidth /* = 0 */)
+Label* Label::createWithTTF(const TTFConfig& ttfConfig, const std::string& text, TextHAlignment hAlignment /* = TextHAlignment::CENTER */, int maxLineWidth /* = 0 */)
 {
     auto ret = new (std::nothrow) Label(hAlignment);
 
@@ -326,8 +326,7 @@ bool Label::initWithTTF(const std::string& text,
 {
     if (FileUtils::getInstance()->isFileExist(fontFilePath))
     {
-        _fontFilePath = std::string(fontFilePath);
-        TTFConfig *ttfConfig = new TTFConfig(fontFilePath.c_str(), fontSize, GlyphCollection::DYNAMIC);
+        TTFConfig ttfConfig(fontFilePath, fontSize, GlyphCollection::DYNAMIC);
         if (setTTFConfig(ttfConfig))
         {
             setDimensions(dimensions.width, dimensions.height);
@@ -338,9 +337,9 @@ bool Label::initWithTTF(const std::string& text,
     return false;
 }
 
-bool Label::initWithTTF(TTFConfig *ttfConfig, const std::string& text, TextHAlignment /*hAlignment*/, int maxLineWidth)
+bool Label::initWithTTF(const TTFConfig& ttfConfig, const std::string& text, TextHAlignment /*hAlignment*/, int maxLineWidth)
 {
-    if (FileUtils::getInstance()->isFileExist(_fontFilePath) && setTTFConfig(ttfConfig))
+    if (FileUtils::getInstance()->isFileExist(ttfConfig.fontFilePath) && setTTFConfig(ttfConfig))
     {
         setMaxLineWidth(maxLineWidth);
         setString(text);
@@ -390,7 +389,6 @@ Label::Label(TextHAlignment hAlignment /* = TextHAlignment::LEFT */,
 , _horizontalKernings(nullptr)
 , _boldEnabled(false)
 , _underlineNode(nullptr)
-, _fontConfig(nullptr)
 , _strikethroughEnabled(false)
 {
     setAnchorPoint(Vec2::ANCHOR_MIDDLE);
@@ -455,7 +453,6 @@ Label::~Label()
 
     CC_SAFE_RELEASE_NULL(_textSprite);
     CC_SAFE_RELEASE_NULL(_shadowNode);
-    CC_SAFE_DELETE(_fontConfig);
 }
 
 void Label::reset()
@@ -481,8 +478,8 @@ void Label::reset()
     _utf32Text.clear();
     _utf8Text.clear();
 
-    CC_SAFE_DELETE(_fontConfig);
-    _fontConfig = new TTFConfig();
+    TTFConfig temp;
+    _fontConfig = temp;
     _outlineSize = 0.f;
     _bmFontPath = "";
     _systemFontDirty = false;
@@ -631,9 +628,9 @@ void Label::setFontAtlas(FontAtlas* atlas,bool distanceFieldEnabled /* = false *
     }
 }
 
-bool Label::setTTFConfig(TTFConfig *ttfConfig)
+bool Label::setTTFConfig(const TTFConfig& ttfConfig)
 {
-    _originalFontSize = ttfConfig->fontSize;
+    _originalFontSize = ttfConfig.fontSize;
     return setTTFConfigInternal(ttfConfig);
 }
 
@@ -670,7 +667,7 @@ bool Label::setBMFontFilePath(const std::string& bmfontFilePath, const Vec2& ima
 
 void Label::setString(const std::string& text)
 {
-    if (text != _utf8Text)
+    if (text.compare(_utf8Text))
     {
         _utf8Text = text;
         _contentDirty = true;
@@ -687,15 +684,6 @@ void Label::setString(const std::string& text)
             cocos2d::log("Error: Label text is too long %d > %d and it will be truncated!", _utf32Text.length(), CC_LABEL_MAX_LENGTH);
             _utf32Text = _utf32Text.substr(0, CC_LABEL_MAX_LENGTH);
         }
-    }
-}
-
-void Label::setFontFilePath(const std::string& fontFilePath)
-{
-    if (fontFilePath.compare(_fontFilePath))
-    {
-        _fontFilePath = fontFilePath;
-        _contentDirty = true;
     }
 }
 
@@ -746,7 +734,7 @@ void Label::restoreFontSize()
 {
     if(_currentLabelType == LabelType::TTF){
         auto ttfConfig = this->getTTFConfig();
-        ttfConfig->fontSize = _originalFontSize;
+        ttfConfig.fontSize = _originalFontSize;
         this->setTTFConfigInternal(ttfConfig);
     }else if(_currentLabelType == LabelType::BMFONT){
         this->setBMFontSizeInternal(_originalFontSize);
@@ -1000,9 +988,9 @@ bool Label::updateQuads()
     return ret;
 }
 
-bool Label::setTTFConfigInternal(TTFConfig *ttfConfig)
+bool Label::setTTFConfigInternal(const TTFConfig& ttfConfig)
 {
-    FontAtlas *newAtlas = FontAtlasCache::getFontAtlasTTF(ttfConfig, _fontFilePath);
+    FontAtlas *newAtlas = FontAtlasCache::getFontAtlasTTF(&ttfConfig);
 
     if (!newAtlas)
     {
@@ -1011,16 +999,13 @@ bool Label::setTTFConfigInternal(TTFConfig *ttfConfig)
     }
 
     _currentLabelType = LabelType::TTF;
-    setFontAtlas(newAtlas,ttfConfig->distanceFieldEnabled,true);
+    setFontAtlas(newAtlas,ttfConfig.distanceFieldEnabled,true);
 
-    if(_fontConfig != ttfConfig) {
-        CC_SAFE_DELETE(_fontConfig);
-        _fontConfig = ttfConfig;
-    }
+    _fontConfig = ttfConfig;
 
-    if (_fontConfig->outlineSize > 0)
+    if (_fontConfig.outlineSize > 0)
     {
-        _fontConfig->distanceFieldEnabled = false;
+        _fontConfig.distanceFieldEnabled = false;
         _useDistanceField = false;
         _useA8Shader = false;
         _currLabelEffect = LabelEffect::OUTLINE;
@@ -1032,13 +1017,13 @@ bool Label::setTTFConfigInternal(TTFConfig *ttfConfig)
         updateShaderProgram();
     }
 
-    if (_fontConfig->italics)
+    if (_fontConfig.italics)
         this->enableItalics();
-    if (_fontConfig->bold)
+    if (_fontConfig.bold)
         this->enableBold();
-    if (_fontConfig->underline)
+    if (_fontConfig.underline)
         this->enableUnderline();
-    if (_fontConfig->strikethrough)
+    if (_fontConfig.strikethrough)
         this->enableStrikethrough();
 
     return true;
@@ -1057,7 +1042,7 @@ void Label::scaleFontSizeDown(float fontSize)
     bool shouldUpdateContent = true;
     if(_currentLabelType == LabelType::TTF){
         auto ttfConfig = this->getTTFConfig();
-        ttfConfig->fontSize = fontSize;
+        ttfConfig.fontSize = fontSize;
         this->setTTFConfigInternal(ttfConfig);
     }else if(_currentLabelType == LabelType::BMFONT){
         if (std::abs(fontSize) < FLT_EPSILON) {
@@ -1078,11 +1063,11 @@ void Label::enableGlow(const Color4B& glowColor)
 {
     if (_currentLabelType == LabelType::TTF)
     {
-        if (_fontConfig->distanceFieldEnabled == false)
+        if (_fontConfig.distanceFieldEnabled == false)
         {
             auto config = _fontConfig;
-            config->outlineSize = 0;
-            config->distanceFieldEnabled = true;
+            config.outlineSize = 0;
+            config.distanceFieldEnabled = true;
             setTTFConfig(config);
             _contentDirty = true;
         }
@@ -1108,9 +1093,9 @@ void Label::enableOutline(const Color4B& outlineColor,int outlineSize /* = -1 */
             _effectColorF.b = outlineColor.b / 255.0f;
             _effectColorF.a = outlineColor.a / 255.0f;
 
-            if (outlineSize > 0 && _fontConfig->outlineSize != outlineSize)
+            if (outlineSize > 0 && _fontConfig.outlineSize != outlineSize)
             {
-                _fontConfig->outlineSize = outlineSize;
+                _fontConfig.outlineSize = outlineSize;
                 setTTFConfig(_fontConfig);
             }
         }
@@ -1229,7 +1214,7 @@ void Label::disableEffect(LabelEffect effect)
             {
                 if (_currentLabelType == LabelType::TTF)
                 {
-                    _fontConfig->outlineSize = 0;
+                    _fontConfig.outlineSize = 0;
                     setTTFConfig(_fontConfig);
                 }
                 _currLabelEffect = LabelEffect::NORMAL;
@@ -2169,7 +2154,7 @@ float Label::getRenderingFontSize()const
     if (_currentLabelType == LabelType::BMFONT) {
         fontSize = _bmFontSize;
     }else if(_currentLabelType == LabelType::TTF){
-        fontSize = this->getTTFConfig()->fontSize;
+        fontSize = this->getTTFConfig().fontSize;
     }else if(_currentLabelType == LabelType::STRING_TEXTURE){
         fontSize = _systemFontSize;
     }else{ //FIXME: find a way to calculate char map font size
@@ -2250,29 +2235,5 @@ void Label::updateLetterSpriteScale(Sprite* sprite)
         }
     }
 }
-
-    _ttfConfig::_ttfConfig(const char *filePath,float size, const GlyphCollection& glyphCollection,
-            const char *customGlyphCollection, bool useDistanceField, int outline,
-            bool useItalics, bool useBold, bool useUnderline, bool useStrikethrough)
-            : fontFilePath(nullptr)
-            , fontSize(size)
-            , glyphs(glyphCollection)
-            , customGlyphs(customGlyphCollection)
-            , distanceFieldEnabled(useDistanceField)
-            , outlineSize(outline)
-            , italics(useItalics)
-            , bold(useBold)
-            , underline(useUnderline)
-            , strikethrough(useStrikethrough)
-    {
-        if(outline > 0)
-        {
-            distanceFieldEnabled = false;
-        }
-    }
-
-    _ttfConfig::~_ttfConfig() {
-        CC_SAFE_DELETE_ARRAY(fontFilePath);
-    }
 
 NS_CC_END

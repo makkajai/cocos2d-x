@@ -41,7 +41,6 @@ struct _ttfConfig;
 class CC_DLL FontAtlasCache
 {  
 public:
-    static FontAtlas* getFontAtlasTTF(const _ttfConfig* config, std::string fontFilePath);
     static FontAtlas* getFontAtlasTTF(const _ttfConfig* config);
     static FontAtlas* getFontAtlasFNT(const std::string& fontFileName, const Vec2& imageOffset = Vec2::ZERO);
 
