@@ -92,6 +92,7 @@ public:
     virtual void onTouchMoved(Touch *pTouch, Event *pEvent) override;
     virtual void onTouchEnded(Touch *pTouch, Event *pEvent) override;
     virtual void onTouchCancelled(Touch *pTouch, Event *pEvent) override;
+    void setOnWithoutAction(bool isOn);
 
 protected:
     /** Sprite which represents the view. */
