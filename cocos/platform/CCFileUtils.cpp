@@ -819,10 +819,10 @@ std::string FileUtils::getPathForFilename(const std::string& filename, const std
         file = filename.substr(pos+1);
     }
 
-    std::string postfix = searchPath;
-    std::string postfix1 = searchPath;
+    std::string postfix = resolutionDirectory;
+    std::string postfix1 = resolutionDirectory;
     std::string prefix = "";
-    if(!searchPath.empty()) {
+    if(!resolutionDirectory.empty()) {
         std::string postFixWithoutSlash = postfix.substr(0, postfix.length() - 1);
         size_t posOfLastSlash = postFixWithoutSlash.find_last_of("/");
         if (posOfLastSlash != std::string::npos)
@@ -845,7 +845,7 @@ std::string FileUtils::getPathForFilename(const std::string& filename, const std
     }
 
     std::string path = prefix + file_path;
-    path += resolutionDirectory;
+//    path += resolutionDirectory;
 
     pos = file.find_last_of(".");
 
@@ -860,7 +860,7 @@ std::string FileUtils::getPathForFilename(const std::string& filename, const std
 
     finalFileName = finalFileNameOnly + postfix + extensionOnly;
 
-    std::string lookupPath = path;
+    std::string lookupPath = searchPath + path;
     path = getFullPathForFilenameWithinDirectory(lookupPath, finalFileName);
 
     if(path.empty()) {
